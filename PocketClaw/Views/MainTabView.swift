@@ -16,7 +16,7 @@ struct MainTabView: View {
             }
 
             Tab("Skills", systemImage: "puzzlepiece") {
-                SkillsTabPlaceholder()
+                SkillListView()
             }
 
             Tab("Cron Jobs", systemImage: "clock.arrow.circlepath") {
@@ -32,19 +32,6 @@ struct MainTabView: View {
 }
 
 // MARK: - Placeholder Views
-
-private struct SkillsTabPlaceholder: View {
-    var body: some View {
-        NavigationStack {
-            PlaceholderContent(
-                icon: "puzzlepiece",
-                title: "Skills",
-                subtitle: "Available skills will appear here"
-            )
-            .navigationTitle("Skills")
-        }
-    }
-}
 
 private struct CronsTabPlaceholder: View {
     var body: some View {
