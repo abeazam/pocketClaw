@@ -8,22 +8,51 @@ struct ChatDetailView: View {
     let session: Session
 
     @State private var viewModel: ChatViewModel?
+    @State private var messageText = ""
 
     var body: some View {
         Group {
             if let vm = viewModel {
-                messageList(vm: vm)
+                chatContent(vm: vm)
             } else {
                 ProgressView()
             }
         }
         .navigationTitle(session.title)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                toolbarMenu
+            }
+        }
         .task {
-            if let client = appVM.client {
-                let vm = ChatViewModel(client: client)
-                viewModel = vm
-                await vm.loadHistory(for: session.key)
+            NSLog("[ChatDetail] .task — id='%@' key='%@' title='%@'", session.id, session.key, session.title)
+            NSLog("[ChatDetail] viewModel is %@", viewModel == nil ? "nil" : "set, msgs=\(viewModel!.messages.count)")
+            // Get or create a cached ViewModel — only load history once
+            if viewModel == nil {
+                if let vm = appVM.chatViewModel(for: session.key) {
+                    viewModel = vm
+                    await vm.loadHistory(for: session.key)
+                }
+            }
+        }
+    }
+
+    // MARK: - Chat Content
+
+    private func chatContent(vm: ChatViewModel) -> some View {
+        VStack(spacing: 0) {
+            messageList(vm: vm)
+            InputBarView(
+                text: $messageText,
+                isStreaming: vm.isStreaming,
+                thinkingEnabled: appVM.thinkingModeEnabled
+            ) {
+                let text = messageText
+                messageText = ""
+                Task {
+                    await vm.sendMessage(text)
+                }
             }
         }
     }
@@ -40,8 +69,27 @@ struct ChatDetailView: View {
                     }
 
                     ForEach(vm.messages) { message in
-                        MessageBubbleView(message: message)
-                            .id(message.id)
+                        VStack(alignment: .leading, spacing: 4) {
+                            // Thinking block (if present)
+                            if let thinking = message.thinking, !thinking.isEmpty {
+                                ThinkingBlockView(
+                                    thinking: thinking,
+                                    isStreaming: vm.isStreaming
+                                        && message.id.hasPrefix("streaming-")
+                                        && vm.isThinkingStreaming
+                                )
+                            }
+
+                            // Message bubble
+                            MessageBubbleView(message: message)
+                        }
+                        .id(message.id)
+                    }
+
+                    // Typing indicator while streaming and no content yet
+                    if vm.isStreaming && vm.streamingContent.isEmpty {
+                        TypingIndicatorView()
+                            .id("typing-indicator")
                     }
                 }
                 .padding(.vertical, 12)
@@ -53,7 +101,7 @@ struct ChatDetailView: View {
                 }
             }
             .overlay {
-                if let error = vm.errorMessage {
+                if let error = vm.errorMessage, !vm.isStreaming {
                     ContentUnavailableView {
                         Label("Error", systemImage: "exclamationmark.triangle")
                     } description: {
@@ -62,13 +110,45 @@ struct ChatDetailView: View {
                 }
             }
             .onChange(of: vm.messages.count) { _, _ in
-                // Scroll to bottom when messages load
-                if let lastId = vm.messages.last?.id {
-                    withAnimation {
-                        proxy.scrollTo(lastId, anchor: .bottom)
-                    }
-                }
+                scrollToBottom(proxy: proxy)
             }
+            .onChange(of: vm.streamingContent) { _, _ in
+                scrollToBottom(proxy: proxy)
+            }
+        }
+    }
+
+    // MARK: - Scroll To Bottom
+
+    private func scrollToBottom(proxy: ScrollViewProxy) {
+        let targetId: String
+        if let vm = viewModel, vm.isStreaming, vm.streamingContent.isEmpty {
+            targetId = "typing-indicator"
+        } else if let lastId = viewModel?.messages.last?.id {
+            targetId = lastId
+        } else {
+            return
+        }
+        withAnimation(.easeOut(duration: 0.15)) {
+            proxy.scrollTo(targetId, anchor: .bottom)
+        }
+    }
+
+    // MARK: - Toolbar Menu
+
+    private var toolbarMenu: some View {
+        Menu {
+            Toggle(isOn: Binding(
+                get: { appVM.thinkingModeEnabled },
+                set: { newValue in
+                    appVM.updateThinkingMode(newValue)
+                    viewModel?.setThinkingEnabled(newValue)
+                }
+            )) {
+                Label("Thinking Mode", systemImage: "brain")
+            }
+        } label: {
+            Image(systemName: "ellipsis.circle")
         }
     }
 

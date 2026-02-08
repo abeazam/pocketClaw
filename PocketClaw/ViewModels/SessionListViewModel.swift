@@ -48,13 +48,21 @@ final class SessionListViewModel {
 
             // Decode sessions individually to skip malformed entries
             var decoded: [Session] = []
+            var seenKeys = Set<String>()
             for item in sessionsArray {
                 guard let itemData = try? JSONSerialization.data(withJSONObject: item),
                       let session = try? JSONDecoder().decode(Session.self, from: itemData) else {
                     continue
                 }
+                // Deduplicate by key — server may return multiple entries for the same session
+                guard seenKeys.insert(session.key).inserted else { continue }
                 decoded.append(session)
             }
+
+            for s in decoded {
+                NSLog("[Sessions] id='%@' key='%@' title='%@'", s.id, s.key, s.title)
+            }
+            NSLog("[Sessions] total decoded: %d (from %d raw, %d unique)", decoded.count, sessionsArray.count, seenKeys.count)
 
             // Sort by updatedAt descending (most recent first)
             sessions = decoded.sorted { s1, s2 in

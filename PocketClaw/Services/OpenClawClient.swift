@@ -45,6 +45,9 @@ final class OpenClawClient: NSObject, Sendable {
     private let _onConnectionStateChanged = MutableBox<(@Sendable (ConnectionState) -> Void)?>(nil)
     private let _onEvent = MutableBox<EventHandler?>(nil)
 
+    // Multi-listener support for event dispatch (keyed by listener ID)
+    private let _eventListeners = MutableBox<[String: EventHandler]>([:])
+
     // MARK: - Init
 
     init(url: URL, token: String? = nil, password: String? = nil) {
@@ -62,6 +65,22 @@ final class OpenClawClient: NSObject, Sendable {
 
     func setEventHandler(_ handler: @escaping EventHandler) {
         _onEvent.value = handler
+    }
+
+    /// Add a named event listener. Returns the listener ID for removal.
+    @discardableResult
+    func addEventListener(id: String, handler: @escaping EventHandler) -> String {
+        _eventListeners.mutate { listeners in
+            listeners[id] = handler
+        }
+        return id
+    }
+
+    /// Remove a previously added event listener by ID.
+    func removeEventListener(id: String) {
+        _eventListeners.mutate { listeners in
+            listeners.removeValue(forKey: id)
+        }
     }
 
     // MARK: - Connect
@@ -212,8 +231,17 @@ final class OpenClawClient: NSObject, Sendable {
     // MARK: - Private: Handle Event
 
     private func handleEvent(_ event: EventFrame) {
+        let eventName = event.event
         let payload = event.payload?.dictValue ?? [:]
-        _onEvent.value?(event.event, payload)
+
+        // Dispatch to primary handler
+        _onEvent.value?(eventName, payload)
+
+        // Dispatch to all registered listeners
+        let listeners = _eventListeners.value
+        for (_, handler) in listeners {
+            handler(eventName, payload)
+        }
     }
 
     // MARK: - Private: Challenge & Auth

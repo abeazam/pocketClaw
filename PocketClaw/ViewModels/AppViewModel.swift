@@ -43,6 +43,11 @@ final class AppViewModel {
     var thinkingModeEnabled: Bool = false
     var onboardingCompleted: Bool = false
 
+    // MARK: - Chat ViewModel Cache
+
+    /// Keeps ChatViewModels alive across tab switches so streaming state isn't lost.
+    private var chatViewModels: [String: ChatViewModel] = [:]
+
     // MARK: - Init
 
     init() {
@@ -116,6 +121,12 @@ final class AppViewModel {
     }
 
     func disconnect() {
+        // Clean up cached chat view models
+        for (_, vm) in chatViewModels {
+            vm.stopListening()
+        }
+        chatViewModels.removeAll()
+
         client?.disconnect()
         client = nil
         connectionState = .disconnected
@@ -144,6 +155,34 @@ final class AppViewModel {
     func updateThinkingMode(_ enabled: Bool) {
         thinkingModeEnabled = enabled
         UserDefaults.standard.set(enabled, forKey: Constants.UserDefaultsKeys.thinkingModeEnabled)
+    }
+
+    // MARK: - Chat ViewModel Management
+
+    /// Returns a cached ChatViewModel for the given session key, creating one if needed.
+    func chatViewModel(for sessionKey: String) -> ChatViewModel? {
+        NSLog("[AppVM] chatViewModel requested for key: '%@'", sessionKey)
+        NSLog("[AppVM] cache keys: %@", Array(chatViewModels.keys).description)
+        if let existing = chatViewModels[sessionKey] {
+            NSLog("[AppVM] CACHE HIT — msgs: %d, hasLoaded: %@", existing.messages.count, existing.hasLoadedHistory ? "true" : "false")
+            return existing
+        }
+        guard let client else {
+            NSLog("[AppVM] NO CLIENT — returning nil")
+            return nil
+        }
+        let vm = ChatViewModel(client: client)
+        vm.setThinkingEnabled(thinkingModeEnabled)
+        vm.startListening(for: sessionKey)
+        chatViewModels[sessionKey] = vm
+        NSLog("[AppVM] CACHE MISS — created new VM for '%@'", sessionKey)
+        return vm
+    }
+
+    /// Remove a cached ChatViewModel (e.g. when session is deleted).
+    func removeChatViewModel(for sessionKey: String) {
+        chatViewModels[sessionKey]?.stopListening()
+        chatViewModels.removeValue(forKey: sessionKey)
     }
 
     // MARK: - Event Handling

@@ -6,6 +6,8 @@ struct SessionListView: View {
     @Environment(AppViewModel.self) private var appVM
 
     @State private var viewModel: SessionListViewModel?
+    @State private var navigateToNewChat = false
+    @State private var newChatSession: Session?
 
     var body: some View {
         NavigationStack {
@@ -21,6 +23,24 @@ struct SessionListView: View {
                 }
             }
             .navigationTitle("Chat")
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        createNewChat()
+                    } label: {
+                        Image(systemName: "plus")
+                    }
+                    .disabled(!appVM.connectionState.isConnected)
+                }
+            }
+            .navigationDestination(for: Session.self) { session in
+                ChatDetailView(session: session)
+            }
+            .navigationDestination(isPresented: $navigateToNewChat) {
+                if let session = newChatSession {
+                    ChatDetailView(session: session)
+                }
+            }
             .task {
                 if let client = appVM.client, appVM.connectionState.isConnected {
                     let vm = SessionListViewModel(client: client)
@@ -56,9 +76,6 @@ struct SessionListView: View {
         .refreshable {
             await vm.fetchSessions()
         }
-        .navigationDestination(for: Session.self) { session in
-            ChatDetailView(session: session)
-        }
         .overlay {
             if vm.isLoading && vm.sessions.isEmpty {
                 ProgressView()
@@ -73,7 +90,39 @@ struct SessionListView: View {
             Label("Start a Conversation", systemImage: "bubble.left.and.bubble.right")
         } description: {
             Text("Your chat sessions will appear here")
+        } actions: {
+            Button {
+                createNewChat()
+            } label: {
+                Text("New Chat")
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(.terminalGreen)
+            .disabled(!appVM.connectionState.isConnected)
         }
+    }
+
+    // MARK: - New Chat
+
+    private func createNewChat() {
+        // Create a local session with a new key — the server will create it
+        // when the first message is sent via chat.send.
+        // Use the agent:main: prefix to match the server's naming convention.
+        let timestamp = Int(Date().timeIntervalSince1970 * 1000)
+        let sessionKey = "agent:main:session-\(timestamp)"
+        let session = Session(
+            id: sessionKey,
+            key: sessionKey,
+            title: "New Chat",
+            createdAt: ISO8601DateFormatter().string(from: Date()),
+            updatedAt: ISO8601DateFormatter().string(from: Date())
+        )
+        newChatSession = session
+        navigateToNewChat = true
+
+        // Haptic feedback
+        let generator = UIImpactFeedbackGenerator(style: .medium)
+        generator.impactOccurred()
     }
 }
 

@@ -21,6 +21,14 @@ struct Message: Codable, Identifiable, Sendable {
     var isAssistant: Bool { role == "assistant" }
     var isSystem: Bool { role == "system" }
 
+    /// Whether this message is heartbeat noise that should be filtered
+    var isHeartbeat: Bool {
+        let upper = content.uppercased()
+        return Constants.heartbeatFilterPatterns.contains { pattern in
+            upper.contains(pattern)
+        }
+    }
+
     /// Extract display text from content, which may be a plain string
     /// or a JSON array of content blocks
     var displayContent: String {
