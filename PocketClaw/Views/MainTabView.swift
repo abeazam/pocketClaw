@@ -12,7 +12,7 @@ struct MainTabView: View {
             }
 
             Tab("Agents", systemImage: "person.2") {
-                AgentsTabPlaceholder()
+                AgentListView()
             }
 
             Tab("Skills", systemImage: "puzzlepiece") {
@@ -32,19 +32,6 @@ struct MainTabView: View {
 }
 
 // MARK: - Placeholder Views
-
-private struct AgentsTabPlaceholder: View {
-    var body: some View {
-        NavigationStack {
-            PlaceholderContent(
-                icon: "person.2",
-                title: "Agents",
-                subtitle: "Your AI agents will appear here"
-            )
-            .navigationTitle("Agents")
-        }
-    }
-}
 
 private struct SkillsTabPlaceholder: View {
     var body: some View {
