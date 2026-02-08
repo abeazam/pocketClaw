@@ -20,7 +20,7 @@ struct MainTabView: View {
             }
 
             Tab("Cron Jobs", systemImage: "clock.arrow.circlepath") {
-                CronsTabPlaceholder()
+                CronListView()
             }
 
             Tab("Settings", systemImage: "gearshape") {
@@ -33,34 +33,7 @@ struct MainTabView: View {
 
 // MARK: - Placeholder Views
 
-private struct CronsTabPlaceholder: View {
-    var body: some View {
-        NavigationStack {
-            PlaceholderContent(
-                icon: "clock.arrow.circlepath",
-                title: "Cron Jobs",
-                subtitle: "Scheduled jobs will appear here"
-            )
-            .navigationTitle("Cron Jobs")
-        }
-    }
-}
 
-// MARK: - Shared Placeholder Content
-
-private struct PlaceholderContent: View {
-    let icon: String
-    let title: String
-    let subtitle: String
-
-    var body: some View {
-        ContentUnavailableView {
-            Label(title, systemImage: icon)
-        } description: {
-            Text(subtitle)
-        }
-    }
-}
 
 // MARK: - Preview
 
