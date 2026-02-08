@@ -9,6 +9,8 @@ struct ChatDetailView: View {
 
     @State private var viewModel: ChatViewModel?
     @State private var messageText = ""
+    @State private var showRenameAlert = false
+    @State private var renameText = ""
 
     var body: some View {
         Group {
@@ -26,8 +28,6 @@ struct ChatDetailView: View {
             }
         }
         .task {
-            NSLog("[ChatDetail] .task — id='%@' key='%@' title='%@'", session.id, session.key, session.title)
-            NSLog("[ChatDetail] viewModel is %@", viewModel == nil ? "nil" : "set, msgs=\(viewModel!.messages.count)")
             // Get or create a cached ViewModel — only load history once
             if viewModel == nil {
                 if let vm = appVM.chatViewModel(for: session.key) {
@@ -35,6 +35,23 @@ struct ChatDetailView: View {
                     await vm.loadHistory(for: session.key)
                 }
             }
+        }
+        .alert("Rename Session", isPresented: $showRenameAlert) {
+            TextField("Session name", text: $renameText)
+            Button("Cancel", role: .cancel) {}
+            Button("Rename") {
+                guard let client = appVM.client else { return }
+                let newName = renameText
+                let key = session.key
+                Task {
+                    _ = try? await client.sendRequestPayload(
+                        method: "sessions.patch",
+                        params: ["key": key, "label": newName]
+                    )
+                }
+            }
+        } message: {
+            Text("Enter a new name for this session.")
         }
     }
 
@@ -138,6 +155,13 @@ struct ChatDetailView: View {
 
     private var toolbarMenu: some View {
         Menu {
+            Button {
+                renameText = session.title
+                showRenameAlert = true
+            } label: {
+                Label("Rename Session", systemImage: "pencil")
+            }
+
             Toggle(isOn: Binding(
                 get: { appVM.thinkingModeEnabled },
                 set: { newValue in

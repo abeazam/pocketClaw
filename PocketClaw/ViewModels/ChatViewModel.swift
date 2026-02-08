@@ -64,11 +64,7 @@ final class ChatViewModel {
     }
 
     func loadHistory(for sessionKey: String) async {
-        NSLog("[ChatVM] loadHistory called for '%@', hasLoaded=%@, msgs=%d", sessionKey, hasLoadedHistory ? "true" : "false", messages.count)
-        guard !hasLoadedHistory else {
-            NSLog("[ChatVM] SKIPPING — already loaded, %d messages cached", messages.count)
-            return
-        }
+        guard !hasLoadedHistory else { return }
         self.sessionKey = sessionKey
         isLoading = true
         errorMessage = nil

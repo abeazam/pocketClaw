@@ -161,21 +161,14 @@ final class AppViewModel {
 
     /// Returns a cached ChatViewModel for the given session key, creating one if needed.
     func chatViewModel(for sessionKey: String) -> ChatViewModel? {
-        NSLog("[AppVM] chatViewModel requested for key: '%@'", sessionKey)
-        NSLog("[AppVM] cache keys: %@", Array(chatViewModels.keys).description)
         if let existing = chatViewModels[sessionKey] {
-            NSLog("[AppVM] CACHE HIT — msgs: %d, hasLoaded: %@", existing.messages.count, existing.hasLoadedHistory ? "true" : "false")
             return existing
         }
-        guard let client else {
-            NSLog("[AppVM] NO CLIENT — returning nil")
-            return nil
-        }
+        guard let client else { return nil }
         let vm = ChatViewModel(client: client)
         vm.setThinkingEnabled(thinkingModeEnabled)
         vm.startListening(for: sessionKey)
         chatViewModels[sessionKey] = vm
-        NSLog("[AppVM] CACHE MISS — created new VM for '%@'", sessionKey)
         return vm
     }
 

@@ -9,6 +9,7 @@ final class SessionListViewModel {
     var sessions: [Session] = []
     var isLoading = false
     var errorMessage: String?
+    var hasLoadedOnce = false
 
     // MARK: - Private
 
@@ -20,7 +21,7 @@ final class SessionListViewModel {
         self.client = client
     }
 
-    // MARK: - Public Methods
+    // MARK: - Fetch
 
     func fetchSessions() async {
         isLoading = true
@@ -59,11 +60,6 @@ final class SessionListViewModel {
                 decoded.append(session)
             }
 
-            for s in decoded {
-                NSLog("[Sessions] id='%@' key='%@' title='%@'", s.id, s.key, s.title)
-            }
-            NSLog("[Sessions] total decoded: %d (from %d raw, %d unique)", decoded.count, sessionsArray.count, seenKeys.count)
-
             // Sort by updatedAt descending (most recent first)
             sessions = decoded.sorted { s1, s2 in
                 guard let d1 = s1.updatedAt?.isoDate, let d2 = s2.updatedAt?.isoDate else {
@@ -71,11 +67,53 @@ final class SessionListViewModel {
                 }
                 return d1 > d2
             }
+            hasLoadedOnce = true
         } catch {
             errorMessage = error.localizedDescription
             sessions = []
         }
 
         isLoading = false
+    }
+
+    // MARK: - Delete
+
+    func deleteSession(_ session: Session) async -> Bool {
+        do {
+            _ = try await client.sendRequestPayload(
+                method: "sessions.delete",
+                params: ["key": session.key]
+            )
+            // Remove locally immediately
+            sessions.removeAll { $0.key == session.key }
+            return true
+        } catch {
+            errorMessage = "Failed to delete: \(error.localizedDescription)"
+            return false
+        }
+    }
+
+    // MARK: - Rename
+
+    func renameSession(_ session: Session, to newLabel: String) async -> Bool {
+        let trimmed = newLabel.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return false }
+
+        do {
+            _ = try await client.sendRequestPayload(
+                method: "sessions.patch",
+                params: ["key": session.key, "label": trimmed]
+            )
+            // Update locally — replace the session to ensure SwiftUI detects the change
+            if let index = sessions.firstIndex(where: { $0.key == session.key }) {
+                var updated = sessions[index]
+                updated.title = trimmed
+                sessions[index] = updated
+            }
+            return true
+        } catch {
+            errorMessage = "Failed to rename: \(error.localizedDescription)"
+            return false
+        }
     }
 }

@@ -9,6 +9,15 @@ struct SessionListView: View {
     @State private var navigateToNewChat = false
     @State private var newChatSession: Session?
 
+    // Rename state
+    @State private var sessionToRename: Session?
+    @State private var renameText = ""
+    @State private var showRenameAlert = false
+
+    // Delete state
+    @State private var sessionToDelete: Session?
+    @State private var showDeleteConfirmation = false
+
     var body: some View {
         NavigationStack {
             Group {
@@ -43,20 +52,51 @@ struct SessionListView: View {
             }
             .task {
                 if let client = appVM.client, appVM.connectionState.isConnected {
-                    let vm = SessionListViewModel(client: client)
-                    viewModel = vm
-                    await vm.fetchSessions()
+                    if viewModel == nil {
+                        let vm = SessionListViewModel(client: client)
+                        viewModel = vm
+                    }
+                    if let vm = viewModel, !vm.hasLoadedOnce {
+                        await vm.fetchSessions()
+                    }
                 }
             }
             .onChange(of: appVM.connectionState.isConnected) { _, isConnected in
                 if isConnected, let client = appVM.client {
-                    if let vm = viewModel {
-                        Task { await vm.fetchSessions() }
-                    } else {
+                    if viewModel == nil {
                         let vm = SessionListViewModel(client: client)
                         viewModel = vm
+                    }
+                    if let vm = viewModel, !vm.hasLoadedOnce {
                         Task { await vm.fetchSessions() }
                     }
+                }
+            }
+            .alert("Rename Session", isPresented: $showRenameAlert) {
+                TextField("Session name", text: $renameText)
+                Button("Cancel", role: .cancel) {}
+                Button("Rename") {
+                    guard let session = sessionToRename, let vm = viewModel else { return }
+                    let newName = renameText
+                    Task { await vm.renameSession(session, to: newName) }
+                }
+            } message: {
+                Text("Enter a new name for this session.")
+            }
+            .alert("Delete Session", isPresented: $showDeleteConfirmation) {
+                Button("Cancel", role: .cancel) {}
+                Button("Delete", role: .destructive) {
+                    guard let session = sessionToDelete, let vm = viewModel else { return }
+                    Task {
+                        let success = await vm.deleteSession(session)
+                        if success {
+                            appVM.removeChatViewModel(for: session.key)
+                        }
+                    }
+                }
+            } message: {
+                if let session = sessionToDelete {
+                    Text("Are you sure you want to delete \"\(session.title)\"? This cannot be undone.")
                 }
             }
         }
@@ -69,6 +109,31 @@ struct SessionListView: View {
             ForEach(vm.sessions) { session in
                 NavigationLink(value: session) {
                     SessionRowView(session: session)
+                }
+                .contextMenu {
+                    Button {
+                        beginRename(session)
+                    } label: {
+                        Label("Rename", systemImage: "pencil")
+                    }
+                    Button(role: .destructive) {
+                        beginDelete(session)
+                    } label: {
+                        Label("Delete", systemImage: "trash")
+                    }
+                }
+                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                    Button(role: .destructive) {
+                        beginDelete(session)
+                    } label: {
+                        Label("Delete", systemImage: "trash")
+                    }
+                    Button {
+                        beginRename(session)
+                    } label: {
+                        Label("Rename", systemImage: "pencil")
+                    }
+                    .tint(.orange)
                 }
             }
         }
@@ -102,12 +167,9 @@ struct SessionListView: View {
         }
     }
 
-    // MARK: - New Chat
+    // MARK: - Actions
 
     private func createNewChat() {
-        // Create a local session with a new key — the server will create it
-        // when the first message is sent via chat.send.
-        // Use the agent:main: prefix to match the server's naming convention.
         let timestamp = Int(Date().timeIntervalSince1970 * 1000)
         let sessionKey = "agent:main:session-\(timestamp)"
         let session = Session(
@@ -120,9 +182,19 @@ struct SessionListView: View {
         newChatSession = session
         navigateToNewChat = true
 
-        // Haptic feedback
         let generator = UIImpactFeedbackGenerator(style: .medium)
         generator.impactOccurred()
+    }
+
+    private func beginRename(_ session: Session) {
+        sessionToRename = session
+        renameText = session.title
+        showRenameAlert = true
+    }
+
+    private func beginDelete(_ session: Session) {
+        sessionToDelete = session
+        showDeleteConfirmation = true
     }
 }
 
@@ -130,7 +202,7 @@ struct SessionListView: View {
 
 extension Session: Hashable {
     static func == (lhs: Session, rhs: Session) -> Bool {
-        lhs.id == rhs.id
+        lhs.id == rhs.id && lhs.title == rhs.title && lhs.lastMessage == rhs.lastMessage
     }
 
     func hash(into hasher: inout Hasher) {

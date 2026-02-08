@@ -33,12 +33,15 @@ struct Session: Codable, Identifiable, Sendable {
             ?? container.decodeIfPresent(String.self, forKey: .id)
             ?? id
 
-        // Title: try title, derivedTitle, displayName, label, fall back to key
-        title = try container.decodeIfPresent(String.self, forKey: .title)
+        // Title: prefer user-set label over derived/auto-generated title
+        // ClawControl uses: s.title || s.label || s.key
+        // Server returns label (user-set) separately from derivedTitle (AI-generated).
+        // When user renames via sessions.patch({label}), the label field reflects it.
+        let label = try container.decodeIfPresent(String.self, forKey: .label)
+        let serverTitle = try container.decodeIfPresent(String.self, forKey: .title)
             ?? container.decodeIfPresent(String.self, forKey: .derivedTitle)
             ?? container.decodeIfPresent(String.self, forKey: .displayName)
-            ?? container.decodeIfPresent(String.self, forKey: .label)
-            ?? key
+        title = label ?? serverTitle ?? key
 
         agentId = try container.decodeIfPresent(String.self, forKey: .agentId)
 
