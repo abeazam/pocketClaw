@@ -45,6 +45,17 @@ struct MessageBubbleView: View {
                         message.isUser ? Color.userBubble : Color.assistantBubble
                     )
                     .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .contextMenu {
+                        Button {
+                            UIPasteboard.general.string = message.content
+                        } label: {
+                            Label("Copy Text", systemImage: "doc.on.doc")
+                        }
+
+                        ShareLink(item: message.content) {
+                            Label("Share", systemImage: "square.and.arrow.up")
+                        }
+                    }
             }
 
             if !message.isUser {

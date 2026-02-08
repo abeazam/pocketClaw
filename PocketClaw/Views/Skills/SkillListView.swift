@@ -11,7 +11,9 @@ struct SkillListView: View {
         NavigationStack {
             Group {
                 if let vm = viewModel {
-                    if vm.skills.isEmpty && !vm.isLoading {
+                    if let error = vm.errorMessage, vm.skills.isEmpty {
+                        errorState(error) { Task { await vm.fetchSkills() } }
+                    } else if vm.skills.isEmpty && !vm.isLoading {
                         emptyState
                     } else {
                         skillList(vm: vm)
@@ -94,6 +96,22 @@ struct SkillListView: View {
             Label("No Skills", systemImage: "puzzlepiece")
         } description: {
             Text("No skills found on the server")
+        }
+    }
+
+    // MARK: - Error State
+
+    private func errorState(_ message: String, retry: @escaping () -> Void) -> some View {
+        ContentUnavailableView {
+            Label("Error", systemImage: "exclamationmark.triangle")
+        } description: {
+            Text(message)
+        } actions: {
+            Button(action: retry) {
+                Text("Try Again")
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(.terminalGreen)
         }
     }
 }

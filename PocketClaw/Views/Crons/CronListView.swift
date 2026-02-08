@@ -11,7 +11,9 @@ struct CronListView: View {
         NavigationStack {
             Group {
                 if let vm = viewModel {
-                    if vm.cronJobs.isEmpty && !vm.isLoading {
+                    if let error = vm.errorMessage, vm.cronJobs.isEmpty {
+                        errorState(error) { Task { await vm.fetchCronJobs() } }
+                    } else if vm.cronJobs.isEmpty && !vm.isLoading {
                         emptyState
                     } else {
                         cronList(vm: vm)
@@ -96,6 +98,22 @@ struct CronListView: View {
             Label("No Cron Jobs", systemImage: "clock.arrow.circlepath")
         } description: {
             Text("No scheduled jobs found on the server")
+        }
+    }
+
+    // MARK: - Error State
+
+    private func errorState(_ message: String, retry: @escaping () -> Void) -> some View {
+        ContentUnavailableView {
+            Label("Error", systemImage: "exclamationmark.triangle")
+        } description: {
+            Text(message)
+        } actions: {
+            Button(action: retry) {
+                Text("Try Again")
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(.terminalGreen)
         }
     }
 }

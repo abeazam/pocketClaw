@@ -11,7 +11,9 @@ struct AgentListView: View {
         NavigationStack {
             Group {
                 if let vm = viewModel {
-                    if vm.agents.isEmpty && !vm.isLoading {
+                    if let error = vm.errorMessage, vm.agents.isEmpty {
+                        errorState(error) { Task { await vm.fetchAgents() } }
+                    } else if vm.agents.isEmpty && !vm.isLoading {
                         emptyState
                     } else {
                         agentList(vm: vm)
@@ -29,7 +31,9 @@ struct AgentListView: View {
             .task {
                 if let client = appVM.client, appVM.connectionState.isConnected {
                     if viewModel == nil {
-                        viewModel = AgentListViewModel(client: client)
+                        let vm = AgentListViewModel(client: client)
+                        viewModel = vm
+                        appVM.agentListViewModel = vm
                     }
                     if let vm = viewModel, !vm.hasLoadedOnce {
                         await vm.fetchAgents()
@@ -39,7 +43,9 @@ struct AgentListView: View {
             .onChange(of: appVM.connectionState.isConnected) { _, isConnected in
                 if isConnected, let client = appVM.client {
                     if viewModel == nil {
-                        viewModel = AgentListViewModel(client: client)
+                        let vm = AgentListViewModel(client: client)
+                        viewModel = vm
+                        appVM.agentListViewModel = vm
                     }
                     if let vm = viewModel, !vm.hasLoadedOnce {
                         Task { await vm.fetchAgents() }
@@ -112,6 +118,22 @@ struct AgentListView: View {
             Label("No Agents", systemImage: "person.2")
         } description: {
             Text("No agents found on the server")
+        }
+    }
+
+    // MARK: - Error State
+
+    private func errorState(_ message: String, retry: @escaping () -> Void) -> some View {
+        ContentUnavailableView {
+            Label("Error", systemImage: "exclamationmark.triangle")
+        } description: {
+            Text(message)
+        } actions: {
+            Button(action: retry) {
+                Text("Try Again")
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(.terminalGreen)
         }
     }
 }

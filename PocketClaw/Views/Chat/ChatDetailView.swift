@@ -11,6 +11,7 @@ struct ChatDetailView: View {
     @State private var messageText = ""
     @State private var showRenameAlert = false
     @State private var renameText = ""
+    @State private var showAgentDetail = false
 
     var body: some View {
         Group {
@@ -52,6 +53,19 @@ struct ChatDetailView: View {
             }
         } message: {
             Text("Enter a new name for this session.")
+        }
+        .sheet(isPresented: $showAgentDetail) {
+            if let agentVM = appVM.agentListViewModel,
+               let agent = agentVM.currentAgent {
+                NavigationStack {
+                    AgentDetailView(agent: agent, viewModel: agentVM)
+                        .toolbar {
+                            ToolbarItem(placement: .topBarLeading) {
+                                Button("Done") { showAgentDetail = false }
+                            }
+                        }
+                }
+            }
         }
     }
 
@@ -160,6 +174,14 @@ struct ChatDetailView: View {
                 showRenameAlert = true
             } label: {
                 Label("Rename Session", systemImage: "pencil")
+            }
+
+            if appVM.agentListViewModel?.currentAgent != nil {
+                Button {
+                    showAgentDetail = true
+                } label: {
+                    Label("View Agent Info", systemImage: "person.circle")
+                }
             }
 
             Toggle(isOn: Binding(

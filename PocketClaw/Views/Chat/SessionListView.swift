@@ -22,7 +22,9 @@ struct SessionListView: View {
         NavigationStack {
             Group {
                 if let vm = viewModel {
-                    if vm.sessions.isEmpty && !vm.isLoading {
+                    if let error = vm.errorMessage, vm.sessions.isEmpty {
+                        errorState(error) { Task { await vm.fetchSessions() } }
+                    } else if vm.sessions.isEmpty && !vm.isLoading {
                         emptyState
                     } else {
                         sessionList(vm: vm)
@@ -164,6 +166,22 @@ struct SessionListView: View {
             .buttonStyle(.borderedProminent)
             .tint(.terminalGreen)
             .disabled(!appVM.connectionState.isConnected)
+        }
+    }
+
+    // MARK: - Error State
+
+    private func errorState(_ message: String, retry: @escaping () -> Void) -> some View {
+        ContentUnavailableView {
+            Label("Connection Error", systemImage: "exclamationmark.triangle")
+        } description: {
+            Text(message)
+        } actions: {
+            Button(action: retry) {
+                Text("Try Again")
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(.terminalGreen)
         }
     }
 

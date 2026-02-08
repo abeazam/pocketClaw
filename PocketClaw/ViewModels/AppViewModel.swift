@@ -43,6 +43,15 @@ final class AppViewModel {
     var thinkingModeEnabled: Bool = false
     var onboardingCompleted: Bool = false
 
+    // MARK: - Reconnection
+
+    var isReconnecting = false
+
+    // MARK: - Cross-Tab References
+
+    /// Agent view model reference for presence event dispatch
+    var agentListViewModel: AgentListViewModel?
+
     // MARK: - Chat ViewModel Cache
 
     /// Keeps ChatViewModels alive across tab switches so streaming state isn't lost.
@@ -142,7 +151,9 @@ final class AppViewModel {
         guard !serverURL.isEmpty, !connectionState.isConnected else { return }
         // Don't reconnect if already connecting
         if case .connecting = connectionState { return }
+        isReconnecting = true
         await connect()
+        isReconnecting = false
     }
 
     // MARK: - Preferences
@@ -181,10 +192,19 @@ final class AppViewModel {
     // MARK: - Event Handling
 
     private func handleEvent(eventName: String, payload: [String: Any]) {
-        // Events will be dispatched to child ViewModels in later phases
-        // For now, handle presence updates
         if eventName == "presence" {
-            // Will be handled in Phase G (Agents)
+            // Update agent status from presence events
+            guard let agentId = payload["agentId"] as? String
+                    ?? payload["agent"] as? String,
+                  let status = payload["status"] as? String
+                    ?? payload["state"] as? String else {
+                return
+            }
+            if let vm = agentListViewModel {
+                if let idx = vm.agents.firstIndex(where: { $0.id == agentId }) {
+                    vm.agents[idx].status = status
+                }
+            }
         }
     }
 
