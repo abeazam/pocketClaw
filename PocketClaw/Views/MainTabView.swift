@@ -59,6 +59,7 @@ struct MainTabView: View {
         .frame(maxWidth: .infinity)
         .padding(.vertical, 6)
         .background(.orange.gradient)
+        .accessibilityLabel("Reconnecting to server")
     }
 
     // MARK: - Error Banner
@@ -84,6 +85,7 @@ struct MainTabView: View {
                     .background(.white.opacity(0.2))
                     .clipShape(Capsule())
             }
+            .accessibilityLabel("Retry connection")
         }
         .frame(maxWidth: .infinity)
         .padding(.horizontal, 12)

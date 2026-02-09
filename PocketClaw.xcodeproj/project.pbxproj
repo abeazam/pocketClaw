@@ -6,8 +6,24 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		306B38872F3A57AC005E9EE2 /* Markdown in Frameworks */ = {isa = PBXBuildFile; productRef = 30A00001AAAA000000000001 /* Markdown */; };
+		306B38882F3A57AC005E9EE2 /* KeychainAccess in Frameworks */ = {isa = PBXBuildFile; productRef = 30A00002AAAA000000000002 /* KeychainAccess */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		30B00001BBBB000000000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 309E9F9D2F37B14A00257FE2 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 309E9FA42F37B14A00257FE2;
+			remoteInfo = PocketClaw;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		309E9FA52F37B14A00257FE2 /* PocketClaw.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PocketClaw.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		30B00002BBBB000000000002 /* PocketClawTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PocketClawTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -16,10 +32,24 @@
 			path = PocketClaw;
 			sourceTree = "<group>";
 		};
+		30B00003BBBB000000000003 /* PocketClawTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = PocketClawTests;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		309E9FA22F37B14A00257FE2 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				306B38882F3A57AC005E9EE2 /* KeychainAccess in Frameworks */,
+				306B38872F3A57AC005E9EE2 /* Markdown in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		30B00004BBBB000000000004 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -33,6 +63,7 @@
 			isa = PBXGroup;
 			children = (
 				309E9FA72F37B14A00257FE2 /* PocketClaw */,
+				30B00003BBBB000000000003 /* PocketClawTests */,
 				309E9FA62F37B14A00257FE2 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -41,6 +72,7 @@
 			isa = PBXGroup;
 			children = (
 				309E9FA52F37B14A00257FE2 /* PocketClaw.app */,
+				30B00002BBBB000000000002 /* PocketClawTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -72,6 +104,27 @@
 			productReference = 309E9FA52F37B14A00257FE2 /* PocketClaw.app */;
 			productType = "com.apple.product-type.application";
 		};
+		30B00005BBBB000000000005 /* PocketClawTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 30B00010BBBB000000000010 /* Build configuration list for PBXNativeTarget "PocketClawTests" */;
+			buildPhases = (
+				30B00006BBBB000000000006 /* Sources */,
+				30B00004BBBB000000000004 /* Frameworks */,
+				30B00007BBBB000000000007 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				30B00008BBBB000000000008 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				30B00003BBBB000000000003 /* PocketClawTests */,
+			);
+			name = PocketClawTests;
+			productName = PocketClawTests;
+			productReference = 30B00002BBBB000000000002 /* PocketClawTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -84,6 +137,10 @@
 				TargetAttributes = {
 					309E9FA42F37B14A00257FE2 = {
 						CreatedOnToolsVersion = 26.2;
+					};
+					30B00005BBBB000000000005 = {
+						CreatedOnToolsVersion = 26.2;
+						TestTargetID = 309E9FA42F37B14A00257FE2;
 					};
 				};
 			};
@@ -106,12 +163,20 @@
 			projectRoot = "";
 			targets = (
 				309E9FA42F37B14A00257FE2 /* PocketClaw */,
+				30B00005BBBB000000000005 /* PocketClawTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		309E9FA32F37B14A00257FE2 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		30B00007BBBB000000000007 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -128,7 +193,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		30B00006BBBB000000000006 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		30B00008BBBB000000000008 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 309E9FA42F37B14A00257FE2 /* PocketClaw */;
+			targetProxy = 30B00001BBBB000000000001 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		309E9FAE2F37B14C00257FE2 /* Debug */ = {
@@ -316,6 +396,46 @@
 			};
 			name = Release;
 		};
+		30B00011BBBB000000000011 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = HZEWM8Q59K;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = dev.azam.PocketClawTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PocketClaw.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/PocketClaw";
+			};
+			name = Debug;
+		};
+		30B00012BBBB000000000012 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = HZEWM8Q59K;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = dev.azam.PocketClawTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PocketClaw.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/PocketClaw";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -333,6 +453,15 @@
 			buildConfigurations = (
 				309E9FB12F37B14C00257FE2 /* Debug */,
 				309E9FB22F37B14C00257FE2 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		30B00010BBBB000000000010 /* Build configuration list for PBXNativeTarget "PocketClawTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				30B00011BBBB000000000011 /* Debug */,
+				30B00012BBBB000000000012 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

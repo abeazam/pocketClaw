@@ -53,6 +53,8 @@ struct AgentRowView: View {
                 .foregroundStyle(.tertiary)
         }
         .padding(.vertical, 4)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(agent.name), \(agent.status?.capitalized ?? "Offline")\(isActive ? ", Active agent" : "")")
     }
 
     // MARK: - Avatar
@@ -110,6 +112,7 @@ struct StatusDotView: View {
         Circle()
             .fill(dotColor)
             .frame(width: 7, height: 7)
+            .accessibilityHidden(true)
     }
 
     private var dotColor: Color {

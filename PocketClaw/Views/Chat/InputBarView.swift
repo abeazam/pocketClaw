@@ -43,6 +43,8 @@ struct InputBarView: View {
                             sendWithHaptic()
                         }
                     }
+                    .accessibilityLabel("Message input")
+                    .accessibilityHint("Type a message to send")
 
                 // Send button
                 Button(action: sendWithHaptic) {
@@ -52,6 +54,8 @@ struct InputBarView: View {
                 }
                 .disabled(!canSend && !isStreaming)
                 .animation(.easeInOut(duration: 0.15), value: canSend)
+                .accessibilityLabel(isStreaming ? "Stop response" : "Send message")
+                .accessibilityHint(isStreaming ? "Stop the current streaming response" : "Send the message you typed")
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 8)

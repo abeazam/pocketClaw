@@ -54,6 +54,7 @@ struct CronRowView: View {
                     .foregroundStyle(job.isActive ? Color.orange : Color.green)
             }
             .buttonStyle(.plain)
+            .accessibilityLabel(job.isActive ? "Pause \(job.name)" : "Resume \(job.name)")
         }
         .padding(.vertical, 4)
     }

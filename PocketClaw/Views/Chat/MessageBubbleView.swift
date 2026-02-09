@@ -45,6 +45,8 @@ struct MessageBubbleView: View {
                         message.isUser ? Color.userBubble : Color.assistantBubble
                     )
                     .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .accessibilityLabel("\(message.isUser ? "You" : "Assistant") said: \(message.content)")
+                    .accessibilityHint("Long press for options")
                     .contextMenu {
                         Button {
                             UIPasteboard.general.string = message.content

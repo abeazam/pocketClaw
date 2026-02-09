@@ -40,6 +40,8 @@ struct SkillRowView: View {
             }
         }
         .padding(.vertical, 4)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(skill.name), \(skill.isEnabled ? "Enabled" : "Disabled")")
     }
 
     // MARK: - Status Badge
