@@ -21,7 +21,7 @@ struct ChatDetailView: View {
                 ProgressView()
             }
         }
-        .navigationTitle(session.title)
+        .navigationTitle(session.displayTitle)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -146,12 +146,21 @@ struct ChatDetailView: View {
             .onChange(of: vm.streamingContent) { _, _ in
                 scrollToBottom(proxy: proxy)
             }
+            .onChange(of: vm.isLoading) { wasLoading, isLoading in
+                // Scroll to bottom when history finishes loading
+                if wasLoading && !isLoading {
+                    // Small delay to let the layout settle
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        scrollToBottom(proxy: proxy, animated: false)
+                    }
+                }
+            }
         }
     }
 
     // MARK: - Scroll To Bottom
 
-    private func scrollToBottom(proxy: ScrollViewProxy) {
+    private func scrollToBottom(proxy: ScrollViewProxy, animated: Bool = true) {
         let targetId: String
         if let vm = viewModel, vm.isStreaming, vm.streamingContent.isEmpty {
             targetId = "typing-indicator"
@@ -160,7 +169,11 @@ struct ChatDetailView: View {
         } else {
             return
         }
-        withAnimation(.easeOut(duration: 0.15)) {
+        if animated {
+            withAnimation(.easeOut(duration: 0.15)) {
+                proxy.scrollTo(targetId, anchor: .bottom)
+            }
+        } else {
             proxy.scrollTo(targetId, anchor: .bottom)
         }
     }

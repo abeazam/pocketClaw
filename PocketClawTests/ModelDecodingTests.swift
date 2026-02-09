@@ -51,6 +51,146 @@ struct SessionDecodingTests {
         let session = try JSONDecoder().decode(Session.self, from: Data(json.utf8))
         #expect(session.title == "agent:main:session-999")
     }
+
+    @Test("Decodes channel and classification fields")
+    func channelFields() throws {
+        let json = """
+        {"key": "agent:main:telegram:direct:123", "title": "Alice", "kind": "direct", "channel": "telegram", "chatType": "direct", "lastChannel": "telegram"}
+        """
+        let session = try JSONDecoder().decode(Session.self, from: Data(json.utf8))
+        #expect(session.channel == "telegram")
+        #expect(session.kind == "direct")
+        #expect(session.chatType == "direct")
+        #expect(session.lastChannel == "telegram")
+        #expect(session.isAppSession == false)
+        #expect(session.channelIcon == "paperplane.fill")
+        #expect(session.channelLabel == "Telegram")
+        #expect(session.chatTypeLabel == "DM")
+    }
+
+    @Test("Decodes group session with subject")
+    func groupSession() throws {
+        let json = """
+        {"key": "agent:main:telegram:group:-100999", "title": "Dev Team", "kind": "group", "channel": "telegram", "chatType": "group", "subject": "Dev Team Chat"}
+        """
+        let session = try JSONDecoder().decode(Session.self, from: Data(json.utf8))
+        #expect(session.isGroup == true)
+        #expect(session.chatTypeLabel == "Group")
+        #expect(session.subject == "Dev Team Chat")
+    }
+
+    @Test("Infers channel from session key when not provided")
+    func channelInference() throws {
+        let json = """
+        {"key": "agent:main:telegram:direct:456"}
+        """
+        let session = try JSONDecoder().decode(Session.self, from: Data(json.utf8))
+        #expect(session.channel == "telegram")
+        #expect(session.isAppSession == false)
+    }
+
+    @Test("Main session is always identified")
+    func mainSession() throws {
+        let json = """
+        {"key": "agent:main:main", "title": "Main"}
+        """
+        let session = try JSONDecoder().decode(Session.self, from: Data(json.utf8))
+        #expect(session.isMainSession == true)
+        #expect(session.isAppSession == true)
+        #expect(session.displayTitle == "Main")
+    }
+
+    @Test("Main session with telegram channel shows agent and channel")
+    func mainSessionWithChannel() throws {
+        let json = """
+        {"key": "agent:main:main", "title": "some garbage", "channel": "telegram"}
+        """
+        let session = try JSONDecoder().decode(Session.self, from: Data(json.utf8))
+        #expect(session.isMainSession == true)
+        #expect(session.displayTitle == "Main (Telegram)")
+    }
+
+    @Test("Non-main agent main session shows agent name")
+    func miniAgentMainSession() throws {
+        let json = """
+        {"key": "agent:mini:main", "title": "6ff4e889 (2026-02-08)"}
+        """
+        let session = try JSONDecoder().decode(Session.self, from: Data(json.utf8))
+        #expect(session.isMainSession == true)
+        #expect(session.displayTitle == "Mini")
+        #expect(session.agentName == "mini")
+    }
+
+    @Test("Cron session with hex title shows Cron Job")
+    func cronSessionGarbageTitle() throws {
+        let json = """
+        {"key": "agent:mini:cron:874151f1-c5d1-4739-bc80-7a2c521af7e9", "title": "fed0de5d (2026-02-09)"}
+        """
+        let session = try JSONDecoder().decode(Session.self, from: Data(json.utf8))
+        #expect(session.isCronSession == true)
+        #expect(session.displayTitle == "Cron Job (Mini)")
+    }
+
+    @Test("Cron session with real title keeps it")
+    func cronSessionRealTitle() throws {
+        let json = """
+        {"key": "agent:main:cron:f3c71a17-2365-4043-9db3-c3ecbd161f07", "title": "Cron: inhaler-evening-mon-wed"}
+        """
+        let session = try JSONDecoder().decode(Session.self, from: Data(json.utf8))
+        #expect(session.displayTitle == "Cron: inhaler-evening-mon-wed")
+    }
+
+    @Test("Session key with 4+ parts is not main")
+    func fourPartKeyNotMain() throws {
+        let json = """
+        {"key": "agent:main:telegram:direct:123"}
+        """
+        let session = try JSONDecoder().decode(Session.self, from: Data(json.utf8))
+        #expect(session.isMainSession == false)
+    }
+
+    @Test("App session identified when no channel")
+    func appSession() throws {
+        let json = """
+        {"key": "agent:main:session-1770510145233", "title": "My Chat"}
+        """
+        let session = try JSONDecoder().decode(Session.self, from: Data(json.utf8))
+        #expect(session.isAppSession == true)
+        #expect(session.isMainSession == false)
+        #expect(session.effectiveChannel == nil)
+    }
+
+    @Test("Discord channel session decodes groupChannel")
+    func discordGroupChannel() throws {
+        let json = """
+        {"key": "agent:main:discord:channel:general", "title": "#general", "channel": "discord", "chatType": "channel", "groupChannel": "#general"}
+        """
+        let session = try JSONDecoder().decode(Session.self, from: Data(json.utf8))
+        #expect(session.channelIcon == "gamecontroller.fill")
+        #expect(session.channelLabel == "Discord")
+        #expect(session.isGroup == true)
+        #expect(session.groupChannel == "#general")
+    }
+
+    @Test("WhatsApp channel icon and label")
+    func whatsappSession() throws {
+        let json = """
+        {"key": "agent:main:whatsapp:direct:+15551234", "channel": "whatsapp", "chatType": "direct"}
+        """
+        let session = try JSONDecoder().decode(Session.self, from: Data(json.utf8))
+        #expect(session.channelIcon == "phone.fill")
+        #expect(session.channelLabel == "WhatsApp")
+    }
+
+    @Test("Epoch millisecond timestamp decoding")
+    func epochTimestamp() throws {
+        let json = """
+        {"key": "s-epoch", "updatedAt": 1770510145233}
+        """
+        let session = try JSONDecoder().decode(Session.self, from: Data(json.utf8))
+        #expect(session.updatedAt != nil)
+        #expect(session.updatedAt!.contains("20"))
+    }
 }
 
 // MARK: - Agent Decoding Tests
