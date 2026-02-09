@@ -20,6 +20,7 @@ final class AgentListViewModel {
     var agentFiles: [AgentFile] = []
     var agentWorkspace: String = ""
     var isLoadingFiles = false
+    var fileLoadError: String?
 
     // MARK: - Private
 
@@ -107,17 +108,33 @@ final class AgentListViewModel {
         agentFiles = []
         agentWorkspace = ""
         isLoadingFiles = true
+        fileLoadError = nil
 
         do {
-            // 1. Fetch file listing
-            let filesResult = try await client.sendRequestPayload(
+            // 1. Fetch file listing — use sendRequestRaw to see the full response shape
+            let rawResult = try await client.sendRequestRaw(
                 method: "agents.files.list",
                 params: ["agentId": agent.id]
             )
 
+            // The payload could be a dict or something else — extract the dict
+            let filesResult: [String: Any]
+            if let dict = rawResult as? [String: Any] {
+                filesResult = dict
+            } else {
+                fileLoadError = "Unexpected response format for files list"
+                isLoadingFiles = false
+                return
+            }
+
             agentWorkspace = (filesResult["workspace"] as? String) ?? ""
 
-            let filesArray = (filesResult["files"] as? [[String: Any]]) ?? []
+            // Try multiple keys: "files", "items", "list", or root-level array
+            let filesArray: [[String: Any]] = (filesResult["files"] as? [[String: Any]])
+                ?? (filesResult["items"] as? [[String: Any]])
+                ?? (filesResult["list"] as? [[String: Any]])
+                ?? []
+
             var files: [AgentFile] = []
 
             for fileDict in filesArray {
@@ -137,7 +154,12 @@ final class AgentListViewModel {
             }
 
             agentFiles = files
+
+            if files.isEmpty && !filesArray.isEmpty {
+                fileLoadError = "Found \(filesArray.count) file entries but failed to decode them"
+            }
         } catch {
+            fileLoadError = error.localizedDescription
             errorMessage = "Failed to load files: \(error.localizedDescription)"
         }
 

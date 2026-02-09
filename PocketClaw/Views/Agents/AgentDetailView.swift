@@ -127,6 +127,20 @@ struct AgentDetailView: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
+            } else if let fileError = viewModel.fileLoadError {
+                VStack(alignment: .leading, spacing: 6) {
+                    Label("Failed to load files", systemImage: "exclamationmark.triangle")
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                    Text(fileError)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                    Button("Retry") {
+                        Task { await viewModel.refreshFiles() }
+                    }
+                    .font(.caption)
+                    .tint(Color.terminalGreen)
+                }
             } else if viewModel.agentFiles.isEmpty {
                 Text("No configuration files found")
                     .font(.caption)
