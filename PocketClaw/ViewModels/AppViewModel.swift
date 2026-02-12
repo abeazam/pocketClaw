@@ -43,6 +43,11 @@ final class AppViewModel {
     var thinkingModeEnabled: Bool = false
     var onboardingCompleted: Bool = false
 
+    // MARK: - Demo State
+
+    /// True when running with canned data (not persisted — resets on app restart)
+    var isDemoMode = false
+
     // MARK: - Reconnection
 
     var isReconnecting = false
@@ -79,7 +84,37 @@ final class AppViewModel {
         UserDefaults.standard.set(authMode.rawValue, forKey: Constants.UserDefaultsKeys.authMode)
     }
 
+    // MARK: - Demo Mode
+
+    func startDemoMode() {
+        let demoClient = DemoClient()
+        client = demoClient
+        isDemoMode = true
+        connectionState = .connected
+        onboardingCompleted = true
+        serverURL = "Demo Mode"
+        authMode = "demo"
+    }
+
+    func exitDemoMode() {
+        // Clean up cached chat view models
+        for (_, vm) in chatViewModels {
+            vm.stopListening()
+        }
+        chatViewModels.removeAll()
+
+        client = nil
+        isDemoMode = false
+        connectionState = .disconnected
+        onboardingCompleted = false
+        serverURL = ""
+        authMode = "token"
+    }
+
     func connect() async {
+        // Skip real connection in demo mode
+        guard !isDemoMode else { return }
+
         guard !serverURL.isEmpty else {
             connectionState = .error("No server URL configured")
             return
@@ -148,6 +183,7 @@ final class AppViewModel {
 
     /// Reconnect using saved credentials (e.g. on foreground)
     func reconnectIfNeeded() async {
+        guard !isDemoMode else { return }
         guard !serverURL.isEmpty, !connectionState.isConnected else { return }
         // Don't reconnect if already connecting
         if case .connecting = connectionState { return }

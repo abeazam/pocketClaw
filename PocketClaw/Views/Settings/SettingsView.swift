@@ -27,12 +27,24 @@ struct SettingsView: View {
                     Circle()
                         .fill(statusColor)
                         .frame(width: 8, height: 8)
-                    Text(appVM.connectionState.displayText)
+                    Text(appVM.isDemoMode ? "Demo Mode" : appVM.connectionState.displayText)
                         .foregroundStyle(.secondary)
                 }
             }
 
-            if !appVM.serverURL.isEmpty {
+            if appVM.isDemoMode {
+                HStack {
+                    Text("Server")
+                    Spacer()
+                    Text("Demo Mode")
+                        .foregroundStyle(.secondary)
+                        .font(.system(.body, design: .monospaced))
+                }
+
+                Button("Exit Demo", role: .destructive) {
+                    appVM.exitDemoMode()
+                }
+            } else if !appVM.serverURL.isEmpty {
                 NavigationLink {
                     ConnectionSetupView()
                 } label: {

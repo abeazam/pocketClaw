@@ -6,6 +6,8 @@ struct OnboardingView: View {
     @Environment(AppViewModel.self) private var appVM
 
     @State private var showConnectionForm = false
+    @State private var secretTapCount = 0
+    @State private var showDemoButton = false
 
     var body: some View {
         if showConnectionForm {
@@ -24,6 +26,14 @@ struct OnboardingView: View {
             Image(systemName: "terminal")
                 .font(.system(size: 72))
                 .foregroundStyle(Color.terminalGreen)
+                .onTapGesture {
+                    secretTapCount += 1
+                    if secretTapCount >= 5, !showDemoButton {
+                        withAnimation(.spring(duration: 0.4)) {
+                            showDemoButton = true
+                        }
+                    }
+                }
 
             VStack(spacing: 8) {
                 Text("PocketClaw")
@@ -37,18 +47,34 @@ struct OnboardingView: View {
 
             Spacer()
 
-            Button {
-                withAnimation {
-                    showConnectionForm = true
+            VStack(spacing: 12) {
+                Button {
+                    withAnimation {
+                        showConnectionForm = true
+                    }
+                } label: {
+                    Text("Get Started")
+                        .fontWeight(.semibold)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 4)
                 }
-            } label: {
-                Text("Get Started")
-                    .fontWeight(.semibold)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 4)
+                .buttonStyle(.borderedProminent)
+                .tint(.terminalGreen)
+
+                if showDemoButton {
+                    Button {
+                        appVM.startDemoMode()
+                    } label: {
+                        Text("Try Demo")
+                            .fontWeight(.medium)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 4)
+                    }
+                    .buttonStyle(.bordered)
+                    .tint(.secondary)
+                    .transition(.opacity.combined(with: .move(edge: .bottom)))
+                }
             }
-            .buttonStyle(.borderedProminent)
-            .tint(.terminalGreen)
             .padding(.horizontal, 40)
             .padding(.bottom, 40)
         }

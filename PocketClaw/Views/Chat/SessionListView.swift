@@ -35,6 +35,27 @@ struct SessionListView: View {
             }
             .navigationTitle("Chat")
             .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    if let vm = viewModel, vm.hiddenAutomatedCount > 0 || vm.showAutomated {
+                        Button {
+                            vm.showAutomated.toggle()
+                        } label: {
+                            HStack(spacing: 4) {
+                                Image(systemName: vm.showAutomated
+                                    ? "line.3.horizontal.decrease.circle.fill"
+                                    : "line.3.horizontal.decrease.circle")
+                                if !vm.showAutomated, vm.hiddenAutomatedCount > 0 {
+                                    Text("\(vm.hiddenAutomatedCount)")
+                                        .font(.caption2)
+                                        .fontWeight(.bold)
+                                }
+                            }
+                        }
+                        .accessibilityLabel(vm.showAutomated
+                            ? "Hide automated sessions"
+                            : "Show \(vm.hiddenAutomatedCount) automated sessions")
+                    }
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         createNewChat()
@@ -104,38 +125,56 @@ struct SessionListView: View {
         }
     }
 
-    // MARK: - Session List
+    // MARK: - Session List (Sectioned)
 
     private func sessionList(vm: SessionListViewModel) -> some View {
         List {
-            ForEach(vm.sessions) { session in
-                NavigationLink(value: session) {
-                    SessionRowView(session: session)
+            // Pinned section
+            let pinned = vm.pinnedSessions
+            if !pinned.isEmpty {
+                Section {
+                    ForEach(pinned) { session in
+                        sessionRow(session, vm: vm)
+                    }
+                } header: {
+                    Label("Pinned", systemImage: "pin.fill")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
-                .contextMenu {
-                    Button {
-                        beginRename(session)
-                    } label: {
-                        Label("Rename", systemImage: "pencil")
+            }
+
+            // App sessions section
+            let app = vm.appSessions
+            if !app.isEmpty {
+                Section {
+                    ForEach(app) { session in
+                        sessionRow(session, vm: vm)
                     }
-                    Button(role: .destructive) {
-                        beginDelete(session)
-                    } label: {
-                        Label("Delete", systemImage: "trash")
+                } header: {
+                    if vm.hasChannelSessions {
+                        Label("App", systemImage: "globe")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                     }
                 }
-                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                    Button(role: .destructive) {
-                        beginDelete(session)
-                    } label: {
-                        Label("Delete", systemImage: "trash")
+            }
+
+            // Channel groups
+            ForEach(vm.channelGroups) { group in
+                Section {
+                    ForEach(group.sessions) { session in
+                        sessionRow(session, vm: vm)
                     }
-                    Button {
-                        beginRename(session)
-                    } label: {
-                        Label("Rename", systemImage: "pencil")
+                } header: {
+                    HStack(spacing: 6) {
+                        Image(systemName: group.icon)
+                        Text(group.label)
+                        Spacer()
+                        Text("\(group.sessions.count)")
+                            .foregroundStyle(.tertiary)
                     }
-                    .tint(.orange)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
                 }
             }
         }
@@ -146,6 +185,77 @@ struct SessionListView: View {
         .overlay {
             if vm.isLoading && vm.sessions.isEmpty {
                 ProgressView()
+            }
+        }
+    }
+
+    // MARK: - Session Row with Context Menu
+
+    private func sessionRow(_ session: Session, vm: SessionListViewModel) -> some View {
+        NavigationLink(value: session) {
+            SessionRowView(session: session, isPinned: vm.isPinned(session))
+        }
+        .contextMenu {
+            // Pin / Unpin
+            if vm.canUnpin(session) {
+                Button {
+                    vm.unpinSession(session.key)
+                } label: {
+                    Label("Unpin", systemImage: "pin.slash")
+                }
+            } else if !vm.isPinned(session) {
+                Button {
+                    vm.pinSession(session.key)
+                } label: {
+                    Label("Pin", systemImage: "pin")
+                }
+            }
+
+            Button {
+                beginRename(session)
+            } label: {
+                Label("Rename", systemImage: "pencil")
+            }
+
+            // Don't allow deleting main session
+            if !session.isMainSession {
+                Button(role: .destructive) {
+                    beginDelete(session)
+                } label: {
+                    Label("Delete", systemImage: "trash")
+                }
+            }
+        }
+        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+            if !session.isMainSession {
+                Button(role: .destructive) {
+                    beginDelete(session)
+                } label: {
+                    Label("Delete", systemImage: "trash")
+                }
+            }
+            Button {
+                beginRename(session)
+            } label: {
+                Label("Rename", systemImage: "pencil")
+            }
+            .tint(.orange)
+        }
+        .swipeActions(edge: .leading, allowsFullSwipe: true) {
+            if vm.canUnpin(session) {
+                Button {
+                    vm.unpinSession(session.key)
+                } label: {
+                    Label("Unpin", systemImage: "pin.slash")
+                }
+                .tint(.gray)
+            } else if !vm.isPinned(session) {
+                Button {
+                    vm.pinSession(session.key)
+                } label: {
+                    Label("Pin", systemImage: "pin")
+                }
+                .tint(Color.terminalGreen)
             }
         }
     }
@@ -164,7 +274,7 @@ struct SessionListView: View {
                 Text("New Chat")
             }
             .buttonStyle(.borderedProminent)
-            .tint(.terminalGreen)
+            .tint(Color.terminalGreen)
             .disabled(!appVM.connectionState.isConnected)
         }
     }
@@ -181,7 +291,7 @@ struct SessionListView: View {
                 Text("Try Again")
             }
             .buttonStyle(.borderedProminent)
-            .tint(.terminalGreen)
+            .tint(Color.terminalGreen)
         }
     }
 

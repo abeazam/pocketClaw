@@ -1,5 +1,16 @@
 import Foundation
 
+// MARK: - Channel Group
+
+struct ChannelGroup: Identifiable, Sendable {
+    let channel: String
+    let icon: String
+    let label: String
+    let sessions: [Session]
+
+    var id: String { channel }
+}
+
 // MARK: - Session List ViewModel
 
 @Observable
@@ -11,6 +22,78 @@ final class SessionListViewModel {
     var errorMessage: String?
     var hasLoadedOnce = false
 
+    // MARK: - Filtering
+
+    private static let showAutomatedKey = "PocketClaw.showAutomatedSessions"
+
+    /// Whether to show automated sessions (cron, hooks, subagent, ACP). Default: hidden.
+    var showAutomated: Bool {
+        didSet { UserDefaults.standard.set(showAutomated, forKey: Self.showAutomatedKey) }
+    }
+
+    /// Count of hidden automated sessions (for the filter badge)
+    var hiddenAutomatedCount: Int {
+        showAutomated ? 0 : sessions.filter(\.isAutomated).count
+    }
+
+    /// Sessions after applying the automated filter
+    private var filteredSessions: [Session] {
+        showAutomated ? sessions : sessions.filter { !$0.isAutomated }
+    }
+
+    // MARK: - Pinning
+
+    private static let pinnedKeysKey = "PocketClaw.pinnedSessionKeys"
+
+    var pinnedSessionKeys: Set<String> {
+        didSet {
+            let array = Array(pinnedSessionKeys)
+            UserDefaults.standard.set(array, forKey: Self.pinnedKeysKey)
+        }
+    }
+
+    // MARK: - Computed Sections
+
+    /// Pinned sessions: main session (always) + user-pinned sessions, sorted by updatedAt
+    var pinnedSessions: [Session] {
+        filteredSessions.filter { $0.isMainSession || pinnedSessionKeys.contains($0.key) }
+            .sorted(byUpdatedAt: true)
+    }
+
+    /// App/webchat sessions that are NOT pinned, sorted by updatedAt
+    var appSessions: [Session] {
+        filteredSessions.filter {
+            $0.isAppSession && !$0.isMainSession && !pinnedSessionKeys.contains($0.key)
+        }
+        .sorted(byUpdatedAt: true)
+    }
+
+    /// Sessions grouped by channel (excluding app sessions and pinned sessions)
+    var channelGroups: [ChannelGroup] {
+        let channelSessions = filteredSessions.filter {
+            !$0.isAppSession && !$0.isMainSession && !pinnedSessionKeys.contains($0.key)
+        }
+
+        // Group by effective channel
+        let grouped = Dictionary(grouping: channelSessions) { $0.effectiveChannel ?? "unknown" }
+
+        return grouped.map { channel, sessions in
+            let representative = sessions.first!
+            return ChannelGroup(
+                channel: channel,
+                icon: representative.channelIcon,
+                label: representative.channelLabel,
+                sessions: sessions.sorted(byUpdatedAt: true)
+            )
+        }
+        .sorted { $0.label < $1.label }
+    }
+
+    /// Whether there are any channel sessions to show
+    var hasChannelSessions: Bool {
+        filteredSessions.contains { !$0.isAppSession && !$0.isMainSession }
+    }
+
     // MARK: - Private
 
     private let client: OpenClawClient
@@ -19,6 +102,29 @@ final class SessionListViewModel {
 
     init(client: OpenClawClient) {
         self.client = client
+        let stored = UserDefaults.standard.stringArray(forKey: Self.pinnedKeysKey) ?? []
+        self.pinnedSessionKeys = Set(stored)
+        self.showAutomated = UserDefaults.standard.bool(forKey: Self.showAutomatedKey)
+    }
+
+    // MARK: - Pinning Actions
+
+    func pinSession(_ key: String) {
+        pinnedSessionKeys.insert(key)
+    }
+
+    func unpinSession(_ key: String) {
+        // Main session can't be unpinned
+        guard !key.hasSuffix(":main") else { return }
+        pinnedSessionKeys.remove(key)
+    }
+
+    func isPinned(_ session: Session) -> Bool {
+        session.isMainSession || pinnedSessionKeys.contains(session.key)
+    }
+
+    func canUnpin(_ session: Session) -> Bool {
+        !session.isMainSession && pinnedSessionKeys.contains(session.key)
     }
 
     // MARK: - Fetch
@@ -61,12 +167,7 @@ final class SessionListViewModel {
             }
 
             // Sort by updatedAt descending (most recent first)
-            sessions = decoded.sorted { s1, s2 in
-                guard let d1 = s1.updatedAt?.isoDate, let d2 = s2.updatedAt?.isoDate else {
-                    return false
-                }
-                return d1 > d2
-            }
+            sessions = decoded.sorted(byUpdatedAt: true)
             hasLoadedOnce = true
         } catch {
             errorMessage = error.localizedDescription
@@ -86,6 +187,7 @@ final class SessionListViewModel {
             )
             // Remove locally immediately
             sessions.removeAll { $0.key == session.key }
+            pinnedSessionKeys.remove(session.key)
             return true
         } catch {
             errorMessage = "Failed to delete: \(error.localizedDescription)"
@@ -114,6 +216,19 @@ final class SessionListViewModel {
         } catch {
             errorMessage = "Failed to rename: \(error.localizedDescription)"
             return false
+        }
+    }
+}
+
+// MARK: - Array Sorting Extension
+
+extension Array where Element == Session {
+    func sorted(byUpdatedAt descending: Bool) -> [Session] {
+        sorted { s1, s2 in
+            guard let d1 = s1.updatedAt?.isoDate, let d2 = s2.updatedAt?.isoDate else {
+                return false
+            }
+            return descending ? d1 > d2 : d1 < d2
         }
     }
 }
