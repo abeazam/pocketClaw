@@ -1,0 +1,74 @@
+import SwiftUI
+import SwiftTerm
+
+// MARK: - Terminal Container View
+
+/// Wraps SwiftTerm's UIKit `TerminalView` for use in SwiftUI.
+struct TerminalContainerView: UIViewRepresentable {
+    let viewModel: TerminalViewModel
+
+    func makeUIView(context: Context) -> TerminalView {
+        let terminalView = TerminalView(frame: .zero)
+        terminalView.terminalDelegate = context.coordinator
+        terminalView.backgroundColor = .black
+        terminalView.nativeBackgroundColor = .black
+        terminalView.nativeForegroundColor = .init(red: 0.19, green: 0.82, blue: 0.35, alpha: 1) // #30D158
+
+        // Give the ViewModel a reference so it can feed data
+        viewModel.terminalView = terminalView
+
+        return terminalView
+    }
+
+    func updateUIView(_ uiView: TerminalView, context: Context) {
+        // No dynamic updates needed — data flows through callbacks
+    }
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(viewModel: viewModel)
+    }
+
+    // MARK: - Coordinator
+
+    final class Coordinator: NSObject, TerminalViewDelegate {
+        private let viewModel: TerminalViewModel
+
+        init(viewModel: TerminalViewModel) {
+            self.viewModel = viewModel
+        }
+
+        // Keyboard input → SSH
+        func send(source: TerminalView, data: ArraySlice<UInt8>) {
+            viewModel.send(Data(data))
+        }
+
+        // Terminal resized
+        func sizeChanged(source: TerminalView, newCols: Int, newRows: Int) {
+            viewModel.resize(cols: newCols, rows: newRows)
+        }
+
+        // Terminal title changed (optional — ignore for now)
+        func setTerminalTitle(source: TerminalView, title: String) {}
+
+        // Current directory changed (optional — ignore)
+        func hostCurrentDirectoryUpdate(source: TerminalView, directory: String?) {}
+
+        // Scroll position changed (optional — ignore)
+        func scrolled(source: TerminalView, position: Double) {}
+
+        // Hyperlink clicked (optional — ignore)
+        func requestOpenLink(source: TerminalView, link: String, params: [String: String]) {}
+
+        // Bell (optional — could add haptic later)
+        func bell(source: TerminalView) {}
+
+        // Clipboard (optional — ignore)
+        func clipboardCopy(source: TerminalView, content: Data) {}
+
+        // iTerm2 content (optional — ignore)
+        func iTermContent(source: TerminalView, content: ArraySlice<UInt8>) {}
+
+        // Range changed (optional — ignore)
+        func rangeChanged(source: TerminalView, startY: Int, endY: Int) {}
+    }
+}

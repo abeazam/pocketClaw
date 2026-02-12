@@ -41,6 +41,56 @@ final class KeychainService {
         try keychain.remove(Constants.KeychainKeys.gatewayPassword)
     }
 
+    // MARK: - SSH Host
+
+    func saveSSHHost(_ host: String) throws {
+        try keychain.set(host, key: Constants.KeychainKeys.sshHost)
+    }
+
+    func loadSSHHost() -> String? {
+        try? keychain.get(Constants.KeychainKeys.sshHost)
+    }
+
+    // MARK: - SSH Port
+
+    func saveSSHPort(_ port: Int) throws {
+        try keychain.set(String(port), key: Constants.KeychainKeys.sshPort)
+    }
+
+    func loadSSHPort() -> Int? {
+        guard let str = try? keychain.get(Constants.KeychainKeys.sshPort) else { return nil }
+        return Int(str)
+    }
+
+    // MARK: - SSH Username
+
+    func saveSSHUsername(_ username: String) throws {
+        try keychain.set(username, key: Constants.KeychainKeys.sshUsername)
+    }
+
+    func loadSSHUsername() -> String? {
+        try? keychain.get(Constants.KeychainKeys.sshUsername)
+    }
+
+    // MARK: - SSH Password
+
+    func saveSSHPassword(_ password: String) throws {
+        try keychain.set(password, key: Constants.KeychainKeys.sshPassword)
+    }
+
+    func loadSSHPassword() -> String? {
+        try? keychain.get(Constants.KeychainKeys.sshPassword)
+    }
+
+    // MARK: - SSH Clear
+
+    func deleteSSHCredentials() throws {
+        try? keychain.remove(Constants.KeychainKeys.sshHost)
+        try? keychain.remove(Constants.KeychainKeys.sshPort)
+        try? keychain.remove(Constants.KeychainKeys.sshUsername)
+        try? keychain.remove(Constants.KeychainKeys.sshPassword)
+    }
+
     // MARK: - Clear All
 
     func clearAll() throws {
