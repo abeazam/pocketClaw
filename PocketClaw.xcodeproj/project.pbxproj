@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		306B38872F3A57AC005E9EE2 /* Markdown in Frameworks */ = {isa = PBXBuildFile; productRef = 30A00001AAAA000000000001 /* Markdown */; };
 		306B38882F3A57AC005E9EE2 /* KeychainAccess in Frameworks */ = {isa = PBXBuildFile; productRef = 30A00002AAAA000000000002 /* KeychainAccess */; };
+		30C00001CCCC000000000001 /* SwiftTerm in Frameworks */ = {isa = PBXBuildFile; productRef = 30C00003CCCC000000000003 /* SwiftTerm */; };
+		30C00002CCCC000000000002 /* Citadel in Frameworks */ = {isa = PBXBuildFile; productRef = 30C00004CCCC000000000004 /* Citadel */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -46,6 +48,8 @@
 			files = (
 				306B38882F3A57AC005E9EE2 /* KeychainAccess in Frameworks */,
 				306B38872F3A57AC005E9EE2 /* Markdown in Frameworks */,
+				30C00001CCCC000000000001 /* SwiftTerm in Frameworks */,
+				30C00002CCCC000000000002 /* Citadel in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -99,6 +103,8 @@
 			packageProductDependencies = (
 				30A00001AAAA000000000001 /* Markdown */,
 				30A00002AAAA000000000002 /* KeychainAccess */,
+				30C00003CCCC000000000003 /* SwiftTerm */,
+				30C00004CCCC000000000004 /* Citadel */,
 			);
 			productName = PocketClaw;
 			productReference = 309E9FA52F37B14A00257FE2 /* PocketClaw.app */;
@@ -156,6 +162,8 @@
 			packageReferences = (
 				30A00003AAAA000000000003 /* XCRemoteSwiftPackageReference "swift-markdown" */,
 				30A00004AAAA000000000004 /* XCRemoteSwiftPackageReference "KeychainAccess" */,
+				30C00005CCCC000000000005 /* XCRemoteSwiftPackageReference "SwiftTerm" */,
+				30C00006CCCC000000000006 /* XCRemoteSwiftPackageReference "Citadel" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 309E9FA62F37B14A00257FE2 /* Products */;
@@ -485,6 +493,22 @@
 				minimumVersion = 4.2.2;
 			};
 		};
+		30C00005CCCC000000000005 /* XCRemoteSwiftPackageReference "SwiftTerm" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/migueldeicaza/SwiftTerm.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.10.0;
+			};
+		};
+		30C00006CCCC000000000006 /* XCRemoteSwiftPackageReference "Citadel" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/orlandos-nl/Citadel.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.12.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -497,6 +521,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 30A00004AAAA000000000004 /* XCRemoteSwiftPackageReference "KeychainAccess" */;
 			productName = KeychainAccess;
+		};
+		30C00003CCCC000000000003 /* SwiftTerm */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 30C00005CCCC000000000005 /* XCRemoteSwiftPackageReference "SwiftTerm" */;
+			productName = SwiftTerm;
+		};
+		30C00004CCCC000000000004 /* Citadel */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 30C00006CCCC000000000006 /* XCRemoteSwiftPackageReference "Citadel" */;
+			productName = Citadel;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

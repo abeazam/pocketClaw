@@ -47,5 +47,9 @@ enum Constants {
         static let serviceName = "dev.azam.PocketClaw"
         static let gatewayToken = "gatewayToken"
         static let gatewayPassword = "gatewayPassword"
+        static let sshHost = "sshHost"
+        static let sshPort = "sshPort"
+        static let sshUsername = "sshUsername"
+        static let sshPassword = "sshPassword"
     }
 }

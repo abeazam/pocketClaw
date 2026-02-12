@@ -5,6 +5,9 @@ import SwiftUI
 struct MainTabView: View {
     @Environment(AppViewModel.self) private var appVM
 
+    @State private var isShowingTerminal = false
+    @State private var terminalViewModel = TerminalViewModel()
+
     var body: some View {
         ZStack(alignment: .top) {
             TabView {
@@ -47,6 +50,20 @@ struct MainTabView: View {
                 errorBanner(msg)
                     .transition(.move(edge: .top).combined(with: .opacity))
             }
+        }
+        .overlay(alignment: .bottomTrailing) {
+            FloatingTerminalButton(
+                isShowingTerminal: $isShowingTerminal,
+                isDemoMode: appVM.isDemoMode,
+                isConnected: terminalViewModel.isTerminalActive
+            )
+        }
+        .sheet(isPresented: $isShowingTerminal) {
+            TerminalSheetView(viewModel: terminalViewModel)
+        }
+        .onAppear {
+            terminalViewModel.loadSavedCredentials()
+            terminalViewModel.prefillHost(from: appVM.serverURL)
         }
         .animation(.easeInOut(duration: 0.3), value: appVM.isReconnecting)
         .animation(.easeInOut(duration: 0.3), value: appVM.isDemoMode)
