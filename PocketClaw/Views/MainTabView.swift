@@ -30,6 +30,12 @@ struct MainTabView: View {
             }
             .tint(.terminalGreen)
 
+            // Demo mode banner
+            if appVM.isDemoMode {
+                demoBanner
+                    .transition(.move(edge: .top).combined(with: .opacity))
+            }
+
             // Reconnection banner
             if appVM.isReconnecting {
                 reconnectionBanner
@@ -43,6 +49,37 @@ struct MainTabView: View {
             }
         }
         .animation(.easeInOut(duration: 0.3), value: appVM.isReconnecting)
+        .animation(.easeInOut(duration: 0.3), value: appVM.isDemoMode)
+    }
+
+    // MARK: - Demo Banner
+
+    private var demoBanner: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "play.circle.fill")
+                .font(.caption)
+                .foregroundStyle(.white)
+            Text("Demo Mode")
+                .font(.caption.weight(.medium))
+                .foregroundStyle(.white)
+            Spacer()
+            Button {
+                appVM.exitDemoMode()
+            } label: {
+                Text("Exit")
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 2)
+                    .background(.white.opacity(0.2))
+                    .clipShape(Capsule())
+            }
+            .accessibilityLabel("Exit demo mode")
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
+        .background(Color.terminalGreen.gradient)
     }
 
     // MARK: - Reconnection Banner

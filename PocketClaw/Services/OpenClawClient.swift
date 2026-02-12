@@ -28,7 +28,7 @@ typealias EventHandler = @Sendable (String, [String: Any]) -> Void
 
 // MARK: - OpenClaw Client
 
-final class OpenClawClient: NSObject, Sendable {
+class OpenClawClient: NSObject, Sendable {
     // Connection config
     private let url: URL
     private let authToken: String?
