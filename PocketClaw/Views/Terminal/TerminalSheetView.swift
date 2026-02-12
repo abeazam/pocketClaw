@@ -13,7 +13,6 @@ struct TerminalSheetView: View {
             Group {
                 if viewModel.isTerminalActive {
                     TerminalContainerView(viewModel: viewModel)
-                        .ignoresSafeArea(.keyboard)
                 } else {
                     SSHConnectionForm(viewModel: viewModel)
                 }

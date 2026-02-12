@@ -13,6 +13,7 @@ struct TerminalContainerView: UIViewRepresentable {
         // sheet dismiss/reopen cycles.
         if let existing = viewModel.terminalView {
             existing.terminalDelegate = context.coordinator
+            installAccessory(on: existing, coordinator: context.coordinator)
             return existing
         }
 
@@ -22,10 +23,29 @@ struct TerminalContainerView: UIViewRepresentable {
         terminalView.nativeBackgroundColor = .black
         terminalView.nativeForegroundColor = .init(red: 0.19, green: 0.82, blue: 0.35, alpha: 1) // #30D158
 
+        // Install our custom accessory with terminal keys + OpenClaw commands
+        installAccessory(on: terminalView, coordinator: context.coordinator)
+
         // Keep a strong reference so the view survives sheet dismissal
         viewModel.terminalView = terminalView
 
         return terminalView
+    }
+
+    private func installAccessory(on terminalView: TerminalView, coordinator: Coordinator) {
+        let screenWidth = terminalView.window?.screen.bounds.width ?? terminalView.bounds.width
+        let accessory = TerminalAccessoryView(width: max(screenWidth, 375))
+
+        accessory.onSendData = { [weak coordinator] data in
+            coordinator?.viewModel.send(data)
+        }
+
+        accessory.onCtrlToggle = { active in
+            // SwiftTerm checks this property when encoding key events
+            terminalView.controlModifier = active
+        }
+
+        terminalView.inputAccessoryView = accessory
     }
 
     func updateUIView(_ uiView: TerminalView, context: Context) {
@@ -39,7 +59,7 @@ struct TerminalContainerView: UIViewRepresentable {
     // MARK: - Coordinator
 
     final class Coordinator: NSObject, TerminalViewDelegate {
-        private let viewModel: TerminalViewModel
+        let viewModel: TerminalViewModel
 
         init(viewModel: TerminalViewModel) {
             self.viewModel = viewModel
