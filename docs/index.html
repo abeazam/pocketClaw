@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PocketClaw Support</title>
+    <style>
+        :root {
+            --green: #30D158;
+            --bg: #000000;
+            --surface: #1C1C1E;
+            --text: #FFFFFF;
+            --secondary: #8E8E93;
+            --border: #38383A;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 680px;
+            margin: 0 auto;
+            padding: 60px 24px;
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+
+        .icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+
+        h1 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: var(--secondary);
+            font-size: 18px;
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 28px;
+            margin-bottom: 20px;
+        }
+
+        .card h2 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--green);
+        }
+
+        .card p, .card li {
+            color: var(--secondary);
+            font-size: 16px;
+            line-height: 1.7;
+        }
+
+        .card ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .card ul li {
+            padding: 6px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .card ul li::before {
+            content: ">";
+            position: absolute;
+            left: 0;
+            color: var(--green);
+            font-family: 'SF Mono', 'Menlo', monospace;
+            font-weight: 600;
+        }
+
+        a {
+            color: var(--green);
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .contact-link {
+            display: inline-block;
+            background: var(--green);
+            color: #000;
+            font-weight: 600;
+            font-size: 16px;
+            padding: 14px 32px;
+            border-radius: 12px;
+            text-decoration: none;
+            margin-top: 12px;
+            transition: opacity 0.2s;
+        }
+
+        .contact-link:hover {
+            opacity: 0.85;
+            text-decoration: none;
+        }
+
+        .faq-item {
+            border-bottom: 1px solid var(--border);
+            padding: 16px 0;
+        }
+
+        .faq-item:last-child {
+            border-bottom: none;
+        }
+
+        .faq-item h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .faq-item p {
+            color: var(--secondary);
+            font-size: 15px;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 48px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border);
+            color: var(--secondary);
+            font-size: 14px;
+        }
+
+        .footer a {
+            color: var(--secondary);
+        }
+
+        .mono {
+            font-family: 'SF Mono', 'Menlo', monospace;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="hero">
+            <div class="icon">&#x1F4F1;</div>
+            <h1>PocketClaw Support</h1>
+            <p class="subtitle">OpenClaw in your pocket</p>
+        </div>
+
+        <div class="card">
+            <h2>About PocketClaw</h2>
+            <p>
+                PocketClaw is a native iOS client for <a href="https://github.com/nichochar/openclaw">OpenClaw</a>,
+                an open-source AI assistant platform. It connects to your self-hosted OpenClaw server
+                over WebSocket, giving you access to your AI agents, skills, and scheduled tasks from anywhere.
+            </p>
+        </div>
+
+        <div class="card">
+            <h2>Getting Started</h2>
+            <ul>
+                <li>Set up an <a href="https://github.com/nichochar/openclaw">OpenClaw server</a> on your own machine or server</li>
+                <li>Open PocketClaw and enter your server's WebSocket URL (e.g. <span class="mono">wss://your-server:18789</span>)</li>
+                <li>Authenticate with your gateway token or password</li>
+                <li>Start chatting with your AI agents</li>
+            </ul>
+            <p style="margin-top: 12px;">
+                Don't have a server? Tap the terminal icon on the welcome screen 5 times to try the built-in demo mode.
+            </p>
+        </div>
+
+        <div class="card">
+            <h2>Frequently Asked Questions</h2>
+
+            <div class="faq-item">
+                <h3>What is OpenClaw?</h3>
+                <p>OpenClaw is an open-source AI assistant that you can self-host. It supports multiple AI agents, skills, scheduled tasks, and integrations with platforms like Telegram and Discord.</p>
+            </div>
+
+            <div class="faq-item">
+                <h3>Do I need my own server?</h3>
+                <p>Yes. PocketClaw is a client that connects to your self-hosted OpenClaw server. You can try the app without a server using the built-in demo mode.</p>
+            </div>
+
+            <div class="faq-item">
+                <h3>How do I connect?</h3>
+                <p>Enter your server's WebSocket URL (starting with <span class="mono">wss://</span> or <span class="mono">ws://</span>) and your authentication token or password on the setup screen.</p>
+            </div>
+
+            <div class="faq-item">
+                <h3>Is my data stored on your servers?</h3>
+                <p>No. PocketClaw connects directly to your own server. We do not collect, store, or transmit any of your data. See our <a href="https://github.com/abeazam/pocketClaw/blob/main/PRIVACY.md">Privacy Policy</a>.</p>
+            </div>
+
+            <div class="faq-item">
+                <h3>The app can't connect to my server</h3>
+                <p>Make sure your server is running and reachable from your device. If using a local network, ensure your phone is on the same network. For remote access, consider using a VPN or tunnel service like Tailscale.</p>
+            </div>
+
+            <div class="faq-item">
+                <h3>What does demo mode do?</h3>
+                <p>Demo mode lets you explore the app's interface with sample data. No server connection is needed. To activate it, tap the terminal icon on the welcome screen 5 times.</p>
+            </div>
+        </div>
+
+        <div class="card" style="text-align: center;">
+            <h2>Need Help?</h2>
+            <p>If you're experiencing issues or have questions, open an issue on GitHub and we'll get back to you.</p>
+            <a href="https://github.com/abeazam/pocketClaw/issues" class="contact-link">Open an Issue</a>
+        </div>
+
+        <div class="footer">
+            <p>
+                <a href="https://github.com/abeazam/pocketClaw">GitHub</a> &nbsp;&middot;&nbsp;
+                <a href="https://github.com/abeazam/pocketClaw/blob/main/PRIVACY.md">Privacy Policy</a>
+            </p>
+            <p style="margin-top: 8px;">&copy; 2025 PocketClaw. MIT License.</p>
+        </div>
+    </div>
+</body>
+</html>
