@@ -8,13 +8,21 @@ struct TerminalContainerView: UIViewRepresentable {
     let viewModel: TerminalViewModel
 
     func makeUIView(context: Context) -> TerminalView {
+        // Reuse the existing TerminalView if available — this preserves
+        // the terminal buffer (scrollback, cursor, screen content) across
+        // sheet dismiss/reopen cycles.
+        if let existing = viewModel.terminalView {
+            existing.terminalDelegate = context.coordinator
+            return existing
+        }
+
         let terminalView = TerminalView(frame: .zero)
         terminalView.terminalDelegate = context.coordinator
         terminalView.backgroundColor = .black
         terminalView.nativeBackgroundColor = .black
         terminalView.nativeForegroundColor = .init(red: 0.19, green: 0.82, blue: 0.35, alpha: 1) // #30D158
 
-        // Give the ViewModel a reference so it can feed data
+        // Keep a strong reference so the view survives sheet dismissal
         viewModel.terminalView = terminalView
 
         return terminalView

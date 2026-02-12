@@ -26,9 +26,13 @@ final class TerminalViewModel {
 
     private let sshService = SSHService()
 
-    /// Weak reference to the terminal view for feeding data.
-    /// Set by TerminalContainerView's coordinator.
-    weak var terminalView: TerminalView?
+    /// Strong reference to the terminal view — kept alive across sheet dismiss/reopen
+    /// so the terminal buffer (scrollback, cursor position, etc.) persists.
+    /// Created lazily by TerminalContainerView and reused on subsequent presentations.
+    var terminalView: TerminalView?
+
+    /// Whether credentials have been loaded from Keychain already
+    private var hasLoadedCredentials = false
 
     // MARK: - Init
 
@@ -39,11 +43,36 @@ final class TerminalViewModel {
     // MARK: - Load Saved Credentials
 
     func loadSavedCredentials() {
+        guard !hasLoadedCredentials else { return }
+        hasLoadedCredentials = true
+
         host = KeychainService.shared.loadSSHHost() ?? ""
         username = KeychainService.shared.loadSSHUsername() ?? ""
         password = KeychainService.shared.loadSSHPassword() ?? ""
         if let savedPort = KeychainService.shared.loadSSHPort() {
             port = String(savedPort)
+        }
+    }
+
+    // MARK: - Save Credentials
+
+    /// Persists current form values to Keychain so they survive app restarts.
+    func saveCredentials() {
+        let trimmedHost = host.trimmingCharacters(in: .whitespaces)
+        let trimmedUser = username.trimmingCharacters(in: .whitespaces)
+        guard !trimmedHost.isEmpty, !trimmedUser.isEmpty else { return }
+
+        do {
+            try KeychainService.shared.saveSSHHost(trimmedHost)
+            try KeychainService.shared.saveSSHUsername(trimmedUser)
+            if !password.isEmpty {
+                try KeychainService.shared.saveSSHPassword(password)
+            }
+            if let portNum = Int(port), portNum > 0, portNum <= 65535 {
+                try KeychainService.shared.saveSSHPort(portNum)
+            }
+        } catch {
+            // Non-fatal
         }
     }
 
@@ -97,15 +126,8 @@ final class TerminalViewModel {
             return
         }
 
-        // Save credentials
-        do {
-            try KeychainService.shared.saveSSHHost(host)
-            try KeychainService.shared.saveSSHPort(portNum)
-            try KeychainService.shared.saveSSHUsername(username)
-            try KeychainService.shared.saveSSHPassword(password)
-        } catch {
-            // Non-fatal — continue with connection
-        }
+        // Save credentials to Keychain
+        saveCredentials()
 
         do {
             try await sshService.connect(

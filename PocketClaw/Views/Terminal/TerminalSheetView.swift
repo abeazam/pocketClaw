@@ -38,6 +38,9 @@ struct TerminalSheetView: View {
             }
         }
         .interactiveDismissDisabled(viewModel.isTerminalActive)
+        .onDisappear {
+            viewModel.saveCredentials()
+        }
     }
 }
 
